@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地面高爾夫比賽排名</title>
+    
+    <!-- ✅ 載入 SheetJS 函式庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        let lastOrder = []; // 存儲排序前的狀態
+
+        async function loadData() {
+            const scriptURL = "https://script.google.com/macros/s/AKfycbwat9RKDyZ5mWFp21SSBc8MKQpfvyUuJcuW2LmV4jB6XSknKLmTzZmEhJP_1J5PkZlL4w/exec";
+
+            try {
+                let response = await fetch(scriptURL);
+                let players = await response.json();
+                let tableBody = document.getElementById("tableBody");
+                tableBody.innerHTML = "";
+                lastOrder = [];
+
+                players.forEach((player) => {
+                    let row = createTableRow(player);
+                    tableBody.appendChild(row);
+                });
+
+                saveCurrentOrder();
+            } catch (error) {
+                console.error("讀取資料錯誤：", error);
+                alert("無法載入資料，請檢查 Google Apps Script 服務");
+            }
+        }
+
+        function createTableRow(player) {
+            let row = document.createElement("tr");
+
+            row.insertCell(0).innerText = "-"; // 名次
+            row.insertCell(1).innerText = player.group;
+            row.insertCell(2).innerText = player.round;
+            row.insertCell(3).innerText = player.name;
+            row.insertCell(4).innerText = player.birthYear;
+            row.insertCell(5).innerText = player.birthMonth;
+            row.insertCell(6).innerText = player.birthDay;
+
+            let score1Cell = row.insertCell(7);
+            let score1Input = document.createElement("input");
+            score1Input.type = "number";
+            score1Input.value = 0;
+            score1Input.oninput = () => calculateTotal(row);
+            score1Cell.appendChild(score1Input);
+
+            let score2Cell = row.insertCell(8);
+            let score2Input = document.createElement("input");
+            score2Input.type = "number";
+            score2Input.value = 0;
+            score2Input.oninput = () => calculateTotal(row);
+            score2Cell.appendChild(score2Input);
+
+            let totalCell = row.insertCell(9);
+            totalCell.innerText = "0";
+
+            let holeInOneCell = row.insertCell(10);
+            let holeInOneInput = document.createElement("input");
+            holeInOneInput.type = "number";
+            holeInOneInput.value = 0;
+            holeInOneCell.appendChild(holeInOneInput);
+
+            return row;
+        }
+
+        function calculateTotal(row) {
+            let score1 = Number(row.cells[7].firstChild.value) || 0;
+            let score2 = Number(row.cells[8].firstChild.value) || 0;
+            let total = score1 + score2;
+            row.cells[9].innerText = total;
+        }
+
+        function saveCurrentOrder() {
+            lastOrder = [...document.querySelectorAll("#tableBody tr")].map(row => {
+                let clonedRow = row.cloneNode(true);
+
+                // ✅ 保留輸入框的數據
+                clonedRow.cells[7].firstChild.value = row.cells[7].firstChild.value;
+                clonedRow.cells[8].firstChild.value = row.cells[8].firstChild.value;
+                clonedRow.cells[10].firstChild.value = row.cells[10].firstChild.value;
+
+                return clonedRow;
+            });
+        }
+
+        function updateRanking() {
+            let tableBody = document.getElementById("tableBody");
+            let rows = [...tableBody.querySelectorAll("tr")];
+
+            saveCurrentOrder();
+
+            let players = rows
+                .map(row => ({
+                    row,
+                    total: Number(row.cells[9].innerText) || 0,
+                    holeInOne: Number(row.cells[10].firstChild.value) || 0,
+                    birthYear: Number(row.cells[4].innerText),
+                    birthMonth: Number(row.cells[5].innerText),
+                    birthDay: Number(row.cells[6].innerText)
+                }))
+                .filter(p => p.total > 0) // ✅ 只參與排序的選手
+                .sort((a, b) => 
+                    (a.total - b.total) || 
+                    (b.holeInOne - a.holeInOne) ||
+                    (a.birthYear - b.birthYear) ||
+                    (a.birthMonth - b.birthMonth) ||
+                    (a.birthDay - b.birthDay)
+                );
+
+            let sortedRows = players.map((p, index) => {
+                p.row.cells[0].innerText = index + 1; // 更新排名
+                return p.row;
+            });
+
+            // ✅ 先清空表格，再重新加入所有選手（包含未排序的）
+            tableBody.innerHTML = "";
+            sortedRows.forEach(row => tableBody.appendChild(row));
+
+            // ✅ 讓總分為 0 的選手顯示在表格底部
+            rows.filter(row => Number(row.cells[9].innerText) === 0)
+                .forEach(row => {
+                    row.cells[0].innerText = "-"; // 總分 0 不顯示排名
+                    tableBody.appendChild(row);
+                });
+        }
+
+        function restoreOriginalOrder() {
+            let tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML = "";
+
+            lastOrder.forEach(originalRow => {
+                let newRow = originalRow.cloneNode(true);
+
+                let score1Input = newRow.cells[7].firstChild;
+                let score2Input = newRow.cells[8].firstChild;
+                let holeInOneInput = newRow.cells[10].firstChild;
+
+                score1Input.value = originalRow.cells[7].firstChild.value;
+                score2Input.value = originalRow.cells[8].firstChild.value;
+                holeInOneInput.value = originalRow.cells[10].firstChild.value;
+
+                score1Input.oninput = () => calculateTotal(newRow);
+                score2Input.oninput = () => calculateTotal(newRow);
+
+                tableBody.appendChild(newRow);
+                calculateTotal(newRow);
+            });
+        }
+
+        function exportToExcel() {
+            let table = document.getElementById("golfTable");
+
+            document.querySelectorAll("#tableBody tr").forEach(row => {
+                row.cells[7].innerText = row.cells[7].firstChild.value;
+                row.cells[8].innerText = row.cells[8].firstChild.value;
+                row.cells[10].innerText = row.cells[10].firstChild.value;
+            });
+
+            let ws = XLSX.utils.table_to_sheet(table);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "比賽排名");
+
+            XLSX.writeFile(wb, "比賽排名.xlsx");
+        }
+
+        window.onload = loadData;
+    </script>
+
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        table { width: 90%; margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 10px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        input { width: 80px; text-align: center; margin: 5px; }
+        button { margin: 10px; padding: 10px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>🏌️ 地面高爾夫比賽排名 🏌️‍♀️</h2>
+
+    <table id="golfTable">
+        <thead>
+            <tr>
+                <th>名次</th>
+                <th>組別</th>
+                <th>梯次</th>
+                <th>姓名</th>
+                <th>出生年</th>
+                <th>出生月</th>
+                <th>出生日</th>
+                <th>球賽1</th>
+                <th>球賽2</th>
+                <th>總分</th>
+                <th>一桿進洞</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <button onclick="loadData()">🔄 重新載入資料</button>
+    <button onclick="updateRanking()">🏆 排序排名</button>
+    <button onclick="restoreOriginalOrder()">⏪ 退回上一步</button>
+    <button onclick="exportToExcel()">📊 匯出 Excel</button>
+
+</body>
+</html>
