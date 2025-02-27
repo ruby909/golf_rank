@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地面高爾夫比賽記分板</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        table { width: 90%; margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 10px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        input { width: 80px; text-align: center; }
+        button { margin: 10px; padding: 10px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>🏌️ 地面高爾夫比賽記分板 🏌️‍♀️</h2>
+
+    <table id="golfTable">
+        <thead>
+            <tr>
+                <th>名次</th>
+                <th>組別</th>
+                <th>梯次</th>
+                <th>姓名</th>
+                <th>出生民國年</th>
+                <th>出生月</th>
+                <th>出生日</th>
+                <th>總分</th>
+                <th>一桿進洞次數</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- 資料將會透過 JavaScript 載入 -->
+        </tbody>
+    </table>
+
+    <button onclick="loadData()">🔄 重新載入資料</button>
+
+    <script>
+      async function loadData() {
+          let url = "https://script.google.com/macros/s/AKfycbx2iq7ak7ItMooB9qGMKabJuAS_mGFsgNKuVfm_JjgVcHFuT657cOaPTmNeAk6oc4N0/exec"; // 替換為你的 JSON 連結
+          let response = await fetch(url);
+          let players = await response.json();
+
+          // 排名規則：總分越低越前 → 一桿進洞越多 → 年齡（民國年）越大 → 出生月份小 → 出生日期小
+          players.sort((a, b) => 
+              a.totalScore - b.totalScore || 
+              b.holeInOne - a.holeInOne || 
+              b.birthYear - a.birthYear || 
+              a.birthMonth - b.birthMonth || 
+              a.birthDay - b.birthDay
+          );
+
+          let tableBody = document.getElementById("tableBody");
+          tableBody.innerHTML = ""; // 先清空表格
+
+          players.forEach((player, index) => {
+              let row = tableBody.insertRow();
+              row.insertCell(0).innerText = index + 1; // 名次
+              row.insertCell(1).innerText = player.group; // 組別
+              row.insertCell(2).innerText = player.round; // 梯次
+              row.insertCell(3).innerText = player.name; // 姓名
+              row.insertCell(4).innerText = player.birthYear; // 出生民國年
+              row.insertCell(5).innerText = player.birthMonth; // 出生月
+              row.insertCell(6).innerText = player.birthDay; // 出生日
+              row.insertCell(7).innerText = player.totalScore; // 總分
+              row.insertCell(8).innerText = player.holeInOne; // 一桿進洞次數
+          });
+      }
+
+      window.onload = loadData; // 頁面載入時執行
+    </script>
+
+</body>
+</html>
