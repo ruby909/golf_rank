@@ -9,7 +9,7 @@
         table { width: 90%; margin: 20px auto; border-collapse: collapse; }
         th, td { border: 1px solid black; padding: 10px; text-align: center; }
         th { background-color: #f2f2f2; }
-        input { width: 80px; text-align: center; }
+        input { width: 80px; text-align: center; margin: 5px; }
         button { margin: 10px; padding: 10px; font-size: 16px; cursor: pointer; }
     </style>
 </head>
@@ -27,50 +27,139 @@
                 <th>出生民國年</th>
                 <th>出生月</th>
                 <th>出生日</th>
+                <th>球賽1成績</th>
+                <th>球賽2成績</th>
                 <th>總分</th>
                 <th>一桿進洞次數</th>
+                <th>操作</th>
             </tr>
         </thead>
-        <tbody id="tableBody">
-            <!-- 資料將會透過 JavaScript 載入 -->
-        </tbody>
+        <tbody id="tableBody"></tbody>
     </table>
 
     <button onclick="loadData()">🔄 重新載入資料</button>
 
     <script>
-      async function loadData() {
-          let url = "https://script.google.com/macros/s/AKfycbx2iq7ak7ItMooB9qGMKabJuAS_mGFsgNKuVfm_JjgVcHFuT657cOaPTmNeAk6oc4N0/exec"; // 替換為你的 JSON 連結
-          let response = await fetch(url);
-          let players = await response.json();
+        const scriptURL = "https://script.google.com/macros/s/AKfycbzMXMYxWPyE8o5RZfMDjdrctAFXKU_HqNuZGCXo005hQ6epHx2zGgd4wvM8lMfsONWa/exec";
 
-          // 排名規則：總分越低越前 → 一桿進洞越多 → 年齡（民國年）越大 → 出生月份小 → 出生日期小
-          players.sort((a, b) => 
-              a.totalScore - b.totalScore || 
-              b.holeInOne - a.holeInOne || 
-              b.birthYear - a.birthYear || 
-              a.birthMonth - b.birthMonth || 
-              a.birthDay - b.birthDay
-          );
+        async function loadData() {
+            try {
+                let response = await fetch(scriptURL);
+                let players = await response.json();
 
-          let tableBody = document.getElementById("tableBody");
-          tableBody.innerHTML = ""; // 先清空表格
+                // 依照順序排列，但不顯示順序欄位
+                players.sort((a, b) => a.order - b.order);
 
-          players.forEach((player, index) => {
-              let row = tableBody.insertRow();
-              row.insertCell(0).innerText = index + 1; // 名次
-              row.insertCell(1).innerText = player.group; // 組別
-              row.insertCell(2).innerText = player.round; // 梯次
-              row.insertCell(3).innerText = player.name; // 姓名
-              row.insertCell(4).innerText = player.birthYear; // 出生民國年
-              row.insertCell(5).innerText = player.birthMonth; // 出生月
-              row.insertCell(6).innerText = player.birthDay; // 出生日
-              row.insertCell(7).innerText = player.totalScore; // 總分
-              row.insertCell(8).innerText = player.holeInOne; // 一桿進洞次數
-          });
-      }
+                let tableBody = document.getElementById("tableBody");
+                tableBody.innerHTML = "";
 
-      window.onload = loadData; // 頁面載入時執行
+                players.forEach((player, index) => {
+                    let row = tableBody.insertRow();
+                    row.insertCell(0).innerText = index + 1;
+                    row.insertCell(1).innerText = player.group;
+                    row.insertCell(2).innerText = player.round;
+                    row.insertCell(3).innerText = player.name;
+                    row.insertCell(4).innerText = player.birthYear;
+                    row.insertCell(5).innerText = player.birthMonth;
+                    row.insertCell(6).innerText = player.birthDay;
+
+                    let score1Cell = row.insertCell(7);
+                    let score1Input = document.createElement("input");
+                    score1Input.type = "number";
+                    score1Input.value = player.score1;
+                    score1Input.oninput = () => checkAndUpdateRanking();
+                    score1Cell.appendChild(score1Input);
+
+                    let score2Cell = row.insertCell(8);
+                    let score2Input = document.createElement("input");
+                    score2Input.type = "number";
+                    score2Input.value = player.score2;
+                    score2Input.oninput = () => checkAndUpdateRanking();
+                    score2Cell.appendChild(score2Input);
+
+                    let totalCell = row.insertCell(9);
+                    totalCell.innerText = player.score1 + player.score2;
+
+                    let holeInOneCell = row.insertCell(10);
+                    let holeInOneInput = document.createElement("input");
+                    holeInOneInput.type = "number";
+                    holeInOneInput.value = player.holeInOne;
+                    holeInOneInput.oninput = () => checkAndUpdateRanking();
+                    holeInOneCell.appendChild(holeInOneInput);
+
+                    let actionCell = row.insertCell(11);
+                    let saveButton = document.createElement("button");
+                    saveButton.innerText = "提交";
+                    saveButton.onclick = () => saveData(
+                        player, 
+                        score1Input.value, 
+                        score2Input.value, 
+                        holeInOneInput.value
+                    );
+                    actionCell.appendChild(saveButton);
+                });
+
+            } catch (error) {
+                console.error("讀取資料錯誤：", error);
+                alert("無法載入資料，請檢查 Google Apps Script 服務");
+            }
+        }
+
+        function checkAndUpdateRanking() {
+            let rows = [...document.querySelectorAll("#tableBody tr")];
+            let allFilled = rows.every(row => 
+                row.cells[7].firstChild.value &&
+                row.cells[8].firstChild.value &&
+                row.cells[10].firstChild.value
+            );
+            if (allFilled) updateRanking();
+        }
+
+        function updateRanking() {
+            let rows = [...document.querySelectorAll("#tableBody tr")];
+            let players = rows.map(row => ({
+                row,
+                score1: Number(row.cells[7].firstChild.value) || 0,
+                score2: Number(row.cells[8].firstChild.value) || 0,
+                holeInOne: Number(row.cells[10].firstChild.value) || 0,
+                birthYear: Number(row.cells[4].innerText),
+                birthMonth: Number(row.cells[5].innerText),
+                birthDay: Number(row.cells[6].innerText)
+            }));
+
+            players.sort((a, b) => 
+                (a.score1 + a.score2) - (b.score1 + b.score2) ||
+                b.holeInOne - a.holeInOne ||
+                b.birthYear - a.birthYear ||
+                a.birthMonth - b.birthMonth ||
+                a.birthDay - b.birthDay
+            );
+
+            players.forEach((player, index) => {
+                player.row.cells[0].innerText = index + 1;
+            });
+        }
+
+        async function saveData(player, score1, score2, holeInOne) {
+            let formData = new FormData();
+            formData.append("action", "update");
+            formData.append("name", player.name);
+            formData.append("score1", score1);
+            formData.append("score2", score2);
+            formData.append("holeInOne", holeInOne);
+
+            try {
+                let response = await fetch(scriptURL, { method: "POST", body: formData });
+                let result = await response.text();
+                alert(result);
+                loadData();
+            } catch (error) {
+                console.error("提交失敗：", error);
+                alert("提交失敗，請檢查 Google Apps Script");
+            }
+        }
+
+        window.onload = loadData;
     </script>
 
 </body>
