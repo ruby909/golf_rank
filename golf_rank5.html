@@ -127,24 +127,24 @@
             });
         }
         function exportToExcel() {
-           alert(1234567);
-          let pdf = new jsPDF('l', 'pt', [3000, 2000]);
-              pdf.html(document.getElementById('golfTable'), {
-              callback: function (pdf) {
-                  pdf.save('比賽排名.pdf');
-              }
-          });
+          //  alert(1234567);
+          // let pdf = new jsPDF('l', 'pt', [3000, 2000]);
+          //     pdf.html(document.getElementById('golfTable'), {
+          //     callback: function (pdf) {
+          //         pdf.save('比賽排名.pdf');
+          //     }
+          // });
             
-            // let table = document.getElementById("golfTable");
-            // document.querySelectorAll("#tableBody tr").forEach(row => {
-            //     row.cells[7].innerText = row.cells[7].firstChild.value;
-            //     row.cells[8].innerText = row.cells[8].firstChild.value;
-            //     row.cells[10].innerText = row.cells[10].firstChild.value;
-            // });
-            // let ws = XLSX.utils.table_to_sheet(table);
-            // let wb = XLSX.utils.book_new();
-            // XLSX.utils.book_append_sheet(wb, ws, "比賽排名");
-            // XLSX.writeFile(wb, "比賽排名.xlsx");
+            let table = document.getElementById("golfTable");
+            document.querySelectorAll("#tableBody tr").forEach(row => {
+                row.cells[7].innerText = row.cells[7].firstChild.value;
+                row.cells[8].innerText = row.cells[8].firstChild.value;
+                row.cells[10].innerText = row.cells[10].firstChild.value;
+            });
+            let ws = XLSX.utils.table_to_sheet(table);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "比賽排名");
+            XLSX.writeFile(wb, "比賽排名.xlsx");
         }
         
          
