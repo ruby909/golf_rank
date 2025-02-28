@@ -45,17 +45,18 @@
         }
 
         #tableContainer {
-            max-height: 400px;
+            height: auto;            
+            max-height:  80vh;
             overflow-y: auto;
             border: 1px solid black;
         }
-#golfTable input {
-    width: 60px;  /* 設定輸入框的固定寬度 */
-    text-align: center; /* 讓數字置中 */
-}
-#golfTable td:nth-child(11) input {
-    width: 60px;  /* 針對「一桿進洞」欄位的輸入框設定固定寬度 */
-}
+        #golfTable input {
+            width: 60px;  /* 設定輸入框的固定寬度 */
+            text-align: center; /* 讓數字置中 */
+        }
+        #golfTable td:nth-child(11) input {
+            width: 60px;  /* 針對「一桿進洞」欄位的輸入框設定固定寬度 */
+        }
     
 </style>
 
@@ -82,8 +83,8 @@
             }
         }
 
-function createTableRow(player) {
-    let row = document.createElement("tr");
+   function createTableRow(player) {
+        let row = document.createElement("tr");
     row.insertCell(0).innerText = "-";
     row.insertCell(1).innerText = player.group;
     row.insertCell(2).innerText = player.round;
