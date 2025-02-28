@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地面高爾夫比賽排名</title>
+
+    <!-- 引入 XLSX.js  -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+#golfTable {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed; /* 讓欄位固定寬度 */
+}
+
+#golfTable th, #golfTable td {
+    border: 1px solid black;
+    padding: 6px 2px;
+    text-align: center;
+    width: 10%; /* 每個欄位的寬度 */
+}
+
+#golfTable th:nth-child(8),
+#golfTable th:nth-child(9),
+#golfTable th:nth-child(10),
+#golfTable td:nth-child(8),
+#golfTable td:nth-child(9),
+#golfTable td:nth-child(10) {
+    width: 10%; /* 讓球賽1、球賽2、總分欄位適當變寬 */
+}
+
+        #golfTable thead {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 100;
+        }
+
+        #golfTable th, #golfTable td {
+            border: 1px solid black;
+            padding: 8px 2px;
+            text-align: center;
+        }
+
+        #tableContainer {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid black;
+        }
+#golfTable input {
+    width: 60px;  /* 設定輸入框的固定寬度 */
+    text-align: center; /* 讓數字置中 */
+}
+#golfTable td:nth-child(11) input {
+    width: 60px;  /* 針對「一桿進洞」欄位的輸入框設定固定寬度 */
+}
+    
+</style>
+
+    <script>
+        let lastOrderData = [];
+
+        async function loadData() {
+            const scriptURL = "https://script.google.com/macros/s/AKfycbwat9RKDyZ5mWFp21SSBc8MKQpfvyUuJcuW2LmV4jB6XSknKLmTzZmEhJP_1J5PkZlL4w/exec";
+            try {
+                let response = await fetch(scriptURL);
+                if (!response.ok) throw new Error("網路回應錯誤");
+                let players = await response.json();
+                let tableBody = document.getElementById("tableBody");
+                tableBody.innerHTML = "";
+
+                lastOrderData = JSON.parse(JSON.stringify(players));
+                players.forEach(player => {
+                    let row = createTableRow(player);
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("讀取資料錯誤：", error);
+                alert("無法載入資料，請檢查 Google Apps Script 服務");
+            }
+        }
+
+function createTableRow(player) {
+    let row = document.createElement("tr");
+    row.insertCell(0).innerText = "-";
+    row.insertCell(1).innerText = player.group;
+    row.insertCell(2).innerText = player.round;
+    row.insertCell(3).innerText = player.name;
+    row.insertCell(4).innerText = player.birthYear;
+    row.insertCell(5).innerText = player.birthMonth;
+    row.insertCell(6).innerText = player.birthDay;
+
+    function createInput(value) {
+        let input = document.createElement("input");
+        input.type = "number";
+        input.value = value || 0;
+        input.onfocus = () => { if (input.value == "0") input.value = ""; };
+        input.onblur = () => { if (input.value == "") input.value = "0"; };
+        return input;
+    }
+
+    let score1Cell = row.insertCell(7);
+    let score1Input = createInput(player.score1);
+    score1Input.oninput = () => calculateTotal(row);
+    score1Cell.appendChild(score1Input);
+
+    let score2Cell = row.insertCell(8);
+    let score2Input = createInput(player.score2);
+    score2Input.oninput = () => calculateTotal(row);
+    score2Cell.appendChild(score2Input);
+
+    let totalCell = row.insertCell(9);
+    totalCell.innerText = (player.score1 || 0) + (player.score2 || 0);
+
+    let holeInOneCell = row.insertCell(10);
+    let holeInOneInput = createInput(player.holeInOne);
+    holeInOneCell.appendChild(holeInOneInput);
+
+    return row;
+}
+
+        function calculateTotal(row) {
+            let score1 = Number(row.cells[7].firstChild.value) || 0;
+            let score2 = Number(row.cells[8].firstChild.value) || 0;
+            let totalCell = row.cells[9];
+            let newTotal = score1 + score2;
+
+            if (totalCell.innerText != newTotal) {
+                totalCell.style.backgroundColor = "yellow";
+                setTimeout(() => totalCell.style.backgroundColor = "", 2000);
+            }
+
+            totalCell.innerText = (score1 || score2) ? newTotal : 0;
+        }
+
+        function updateRanking() {
+            storeCurrentState();
+            let tableBody = document.getElementById("tableBody");
+            let rows = Array.from(tableBody.querySelectorAll("tr"));
+            let players = rows.map(row => ({
+                row,
+                total: Number(row.cells[9].innerText) || 0,
+                holeInOne: Number(row.cells[10].firstChild.value) || 0,
+                birthYear: Number(row.cells[4].innerText),
+                birthMonth: Number(row.cells[5].innerText),
+                birthDay: Number(row.cells[6].innerText)
+            })).filter(p => p.total > 0)
+            .sort((a, b) =>
+                (a.total - b.total) ||
+                (b.holeInOne - a.holeInOne) ||
+                (a.birthYear - b.birthYear) ||
+                (a.birthMonth - b.birthMonth) ||
+                (a.birthDay - b.birthDay)
+            );
+
+            tableBody.innerHTML = "";
+            players.forEach((p, index) => {
+                p.row.cells[0].innerText = index + 1;
+                tableBody.appendChild(p.row);
+            });
+        }
+
+        function storeCurrentState() {
+            let tableBody = document.getElementById("tableBody");
+            let rows = Array.from(tableBody.querySelectorAll("tr"));
+            
+            lastOrderData = rows.map(row => ({
+                group: row.cells[1].innerText,
+                round: row.cells[2].innerText,
+                name: row.cells[3].innerText,
+                birthYear: row.cells[4].innerText,
+                birthMonth: row.cells[5].innerText,
+                birthDay: row.cells[6].innerText,
+                score1: row.cells[7].firstChild.value,
+                score2: row.cells[8].firstChild.value,
+                total: row.cells[9].innerText,
+                holeInOne: row.cells[10].firstChild.value
+            }));
+        }
+
+        function restoreOriginalOrder() {
+            let tableBody = document.getElementById("tableBody");
+            tableBody.innerHTML = "";
+            lastOrderData.forEach(player => {
+                let row = createTableRow(player);
+                tableBody.appendChild(row);
+                calculateTotal(row);
+            });
+        }
+
+        function exportToExcel() {
+            let tableBody = document.getElementById("tableBody");
+            let rows = Array.from(tableBody.querySelectorAll("tr"));
+
+            let data = [
+                ["名次", "組別", "梯次", "姓名", "出生年", "出生月", "出生日", "球賽1", "球賽2", "總分", "一桿進洞"]
+            ];
+
+            rows.forEach(row => {
+                let rowData = Array.from(row.cells).map(cell => cell.firstChild?.value ?? cell.innerText);
+                data.push(rowData);
+            });
+
+            let ws = XLSX.utils.aoa_to_sheet(data);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "比賽排名");
+            XLSX.writeFile(wb, "比賽排名.xlsx");
+        }
+    </script>
+</head>
+<body>
+    <h2>🏌️ 地面高爾夫比賽排名 🏌️‍♀️</h2>
+    <div id="tableContainer">
+        <table id="golfTable">
+            <thead>
+                <tr>
+                    <th>名次</th>
+                    <th>組別</th>
+                    <th>梯次</th>
+                    <th>姓名</th>
+                    <th>出生年</th>
+                    <th>出生月</th>
+                    <th>出生日</th>
+                    <th>球賽1</th>
+                    <th>球賽2</th>
+                    <th>總分</th>
+                    <th>一桿進洞</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+    <button onclick="loadData()">🔄 重新載入資料</button>
+    <button onclick="updateRanking()">🏆 排序排名</button>
+    <button onclick="restoreOriginalOrder()">⏪ 退回上一步</button>
+    <button onclick="exportToExcel()">📊 匯出 Excel</button>
+</body>
+</html>
