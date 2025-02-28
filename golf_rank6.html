@@ -15,29 +15,38 @@
     table-layout: fixed; /* 讓欄位固定寬度 */
 }
 
-#golfTable th, #golfTable td {
+        #golfTable th, #golfTable td {
     border: 1px solid black;
     padding: 6px 2px;
     text-align: center;
     width: 10%; /* 每個欄位的寬度 */
 }
 
-#golfTable th:nth-child(8),
-#golfTable th:nth-child(9),
-#golfTable th:nth-child(10),
-#golfTable td:nth-child(8),
-#golfTable td:nth-child(9),
-#golfTable td:nth-child(10) {
+        #golfTable th:nth-child(8),
+        #golfTable th:nth-child(9),
+        #golfTable th:nth-child(10),
+        #golfTable td:nth-child(8),
+        #golfTable td:nth-child(9),
+        #golfTable td:nth-child(10) {
     width: 10%; /* 讓球賽1、球賽2、總分欄位適當變寬 */
 }
-/* 隱藏出生年、月、日欄位 */
-#golfTable th:nth-child(5),
-#golfTable th:nth-child(6),
-#golfTable th:nth-child(7),
-#golfTable td:nth-child(5),
-#golfTable td:nth-child(6),
-#golfTable td:nth-child(7) {
-    display: none;
+        /* 隱藏出生年、月、日欄位 */
+        #golfTable th:nth-child(5),
+        #golfTable th:nth-child(6),
+        #golfTable th:nth-child(7),
+        #golfTable td:nth-child(5),
+        #golfTable td:nth-child(6),
+        #golfTable td:nth-child(7) {
+            display: none;
+        }
+        #buttonContainer {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 10px;
+    text-align: center;
+    z-index: 200;
+    border-bottom: 1px solid #ddd;
 }
 
         #golfTable thead {
