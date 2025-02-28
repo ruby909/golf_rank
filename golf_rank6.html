@@ -30,6 +30,15 @@
 #golfTable td:nth-child(10) {
     width: 10%; /* 讓球賽1、球賽2、總分欄位適當變寬 */
 }
+/* 隱藏出生年、月、日欄位 */
+#golfTable th:nth-child(5),
+#golfTable th:nth-child(6),
+#golfTable th:nth-child(7),
+#golfTable td:nth-child(5),
+#golfTable td:nth-child(6),
+#golfTable td:nth-child(7) {
+    display: none;
+}
 
         #golfTable thead {
             position: sticky;
@@ -46,7 +55,7 @@
 
         #tableContainer {
             height: auto;            
-            max-height:  80vh;
+            max-height:  70vh;
             overflow-y: auto;
             border: 1px solid black;
         }
