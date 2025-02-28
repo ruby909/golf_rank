@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地面高爾夫球賽紀錄卡</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; text-align: center; }
+        th, td { border: 1px solid black; padding: 5px; }
+        input { width: 50px; text-align: center; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <h2>地面高爾夫球賽紀錄卡</h2>
+    <table id="scoreTable">
+        <thead>
+            <tr>
+                <th>序號</th>
+                <th>參賽者</th>
+                <th>局數/洞</th>
+                <th>1</th> <th>2</th> <th>3</th> <th>4</th> <th>5</th> <th>6</th> 
+                <th>7</th> <th>8</th>
+                <th>一桿</th>
+                <th>四桿</th>
+                <th>小計</th>
+                <th>總桿</th>
+                <th>名次</th>
+            </tr>
+        </thead>
+        <tbody id="scoreBody"></tbody>
+    </table>
+
+    <button onclick="addPlayer()">新增選手</button>
+    <button onclick="exportToExcel()">匯出 Excel</button>
+
+    <script>
+        let playerCount = 0;
+
+        function addPlayer() {
+            playerCount++;
+            for (let i = 0; i < 3; i++) {
+                let row = document.createElement("tr");
+                row.innerHTML = `
+                    ${i === 0 ? `<td rowspan="3">${playerCount}</td>` : ``}
+                    ${i === 0 ? `<td rowspan="3"><input type="text" placeholder="姓名"></td>` : ``}
+                    <td>${["第一局", "第二局", "第三局"][i]}</td>
+                    ${Array(8).fill(`<td><input type="number" min="0" oninput="calculateScores()"></td>`).join('')}
+                    <td><input type="number" min="0" oninput="calculateScores()"></td>
+                    <td><input type="number" min="0" oninput="calculateScores()"></td>
+                    <td class="subtotal">0</td>
+                    ${i === 0 ? `<td rowspan="3" class="total">0</td><td rowspan="3" class="rank"></td>` : ``}
+                `;
+                document.getElementById("scoreBody").appendChild(row);
+            }
+        }
+
+        function calculateScores() {
+            let rows = document.querySelectorAll("#scoreBody tr");
+            let players = [];
+
+            for (let i = 0; i < rows.length; i += 3) {
+                let totalScore = 0;
+                let totalOneshot = 0;
+                let totalFourshot = 0;
+
+                for (let j = 0; j < 3; j++) {
+                    let row = rows[i + j];
+                    let inputs = row.querySelectorAll("td input[type='number']");
+                    let subtotal = 0;
+
+                    for (let k = 0; k < 8; k++) {
+                        subtotal += parseInt(inputs[k].value) || 0;
+                    }
+
+                    row.querySelector(".subtotal").textContent = subtotal;
+                    totalScore += subtotal;
+                    totalOneshot += parseInt(inputs[8].value) || 0;
+                    totalFourshot += parseInt(inputs[9].value) || 0;
+                }
+
+                rows[i].querySelector(".total").textContent = totalScore;
+                players.push({
+                    row: rows[i],
+                    total: totalScore,
+                    oneshot: totalOneshot,
+                    fourshot: totalFourshot
+                });
+            }
+
+            rankPlayers(players);
+        }
+
+        function rankPlayers(players) {
+            players = players.filter(p => p.total > 0); // 總桿數為 0 者不排名
+
+            players.sort((a, b) => {
+                if (a.total !== b.total) return a.total - b.total;
+                if (a.oneshot !== b.oneshot) return b.oneshot - a.oneshot;
+                return a.fourshot - b.fourshot;
+            });
+
+            let rank = 1, skippedRanks = 0;
+            let prev = null;
+
+            players.forEach((p, index) => {
+                if (prev && (p.total !== prev.total || p.oneshot !== prev.oneshot || p.fourshot !== prev.fourshot)) {
+                    rank += skippedRanks;
+                    skippedRanks = 1;
+                } else {
+                    skippedRanks++;
+                }
+                p.row.querySelector(".rank").textContent = rank;
+                prev = p;
+            });
+        }
+
+function exportToExcel() {
+    let table = document.getElementById("scoreTable");
+    
+    // **先將所有 input 內的值填入對應的 td**
+    let inputs = table.querySelectorAll("input");
+    inputs.forEach(input => {
+        let cell = input.parentElement;
+        cell.textContent = input.value; // 把 input 的值寫入 td
+    });
+
+    let ws = XLSX.utils.table_to_sheet(table, { raw: true }); // 轉換表格為 Sheet
+
+    // 建立 Workbook
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "地面高爾夫球賽");
+
+    // 下載 Excel 檔案
+    XLSX.writeFile(wb, "地面高爾夫球賽.xlsx");
+
+    // **恢復 input (避免影響使用者操作)**
+    inputs.forEach(input => {
+        let cell = input.parentElement;
+        cell.innerHTML = ''; // 清除剛剛填入的文字
+        cell.appendChild(input); // 把原本的 input 加回去
+    });
+}
+
+    </script>
+
+</body>
+</html>
