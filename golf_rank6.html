@@ -31,9 +31,11 @@
     width: 10%; /* 讓球賽1、球賽2、總分欄位適當變寬 */
 }
         /* 隱藏出生年、月、日欄位 */
+        #golfTable th:nth-child(2),
         #golfTable th:nth-child(5),
         #golfTable th:nth-child(6),
         #golfTable th:nth-child(7),
+        #golfTable td:nth-child(2),
         #golfTable td:nth-child(5),
         #golfTable td:nth-child(6),
         #golfTable td:nth-child(7) {
@@ -75,10 +77,58 @@
         #golfTable td:nth-child(11) input {
             width: 60px;  /* 針對「一桿進洞」欄位的輸入框設定固定寬度 */
         }
-    
+#headerContainer {
+        display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    width: 100%;
+
+    padding: 10px;
+
+}
+h2 {
+
+    text-align: center;
+
+    flex-grow: 1;
+
+    margin: 0;
+
+}
+
+#dateDisplay {
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    color: #333;
+
+}
 </style>
 
     <script>
+        function updateDate() {
+
+            let today = new Date();
+
+            let formattedDate = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`;
+            document.getElementById("dateDisplay").innerText = formattedDate;
+
+        }
+
+
+        window.onload = function () {
+
+            updateDate();
+
+            loadData();
+
+        };
+
         let lastOrderData = [];
 
         async function loadData() {
@@ -230,7 +280,14 @@
     </script>
 </head>
 <body>
+<div id="headerContainer">
+
     <h2>🏌️ 地面高爾夫比賽排名 🏌️‍♀️</h2>
+
+    <div id="dateDisplay"></div>
+
+</div>
+
     <div id="tableContainer">
         <table id="golfTable">
             <thead>
