@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -59,11 +59,7 @@
 
         }
     </style>
-    <script 
-
-src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></scrip
-
-t>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -75,9 +71,7 @@ t>
                     <th class="sticky-column" style="width: 50px;">序號</th>
                     <th class="sticky-name" style="width: 120px;">參賽者</th>
                     <th class="sticky-round" style="width: 100px;">局數</th>
-                    <th>1</th> <th>2</th> <th>3</th> <th>4</th> <th>5</th>        
-
-             <th>6</th> <th>7</th> <th>8</th>
+                    <th>1</th> <th>2</th> <th>3</th> <th>4</th> <th>5</th>                     <th>6</th> <th>7</th> <th>8</th>
                     <th>9</th> <th>10</th> <th>11</th> <th>12</th>
                     <th>一桿</th>
                     <th>四桿</th>
@@ -94,9 +88,7 @@ t>
     <button onclick="exportToExcel()">匯出 Excel</button>
 
     <script>
-        let colors = ["#FFDDC1", "#FFABAB", "#FFC3A0", "#D5AAFF", "#85E3FF", 
-
-"#B9FBC0"]; // 不同背景顏色
+        let colors = ["#FFDDC1", "#FFABAB", "#FFC3A0", "#D5AAFF", "#85E3FF", "#B9FBC0"]; // 不同背景顏色
         let playerCount = 0;
 
         function addPlayer() {
@@ -108,34 +100,14 @@ t>
                 let row = document.createElement("tr");
 
                 row.innerHTML = `
-                    ${i === 0 ? `<td rowspan="3" class="seq sticky-column" 
-
-style="background-color: ${bgColor}">${playerCount}</td>` : ``}
-                    ${i === 0 ? `<td rowspan="3" class="sticky-name"><input 
-
-type="text" placeholder="姓名"></td>` : ``}
-                    <td class="sticky-round" style="background-color: 
-
-${bgColor}">${["第一局", "第二局", "第三局"][i]}</td>
-                    ${Array(12).fill(`<td style="background-color: 
-
-${bgColor}"><input type="number" min="0" oninput="calculateScores
-
-()"></td>`).join('')}
-                    <td style="background-color: ${bgColor}"><input type="number" 
-
-min="0" oninput="calculateScores()"></td>
-                    <td style="background-color: ${bgColor}"><input type="number" 
-
-min="0" oninput="calculateScores()"></td>
-                    <td class="subtotal" style="background-color: 
-
-${bgColor}">0</td>
-                    ${i === 0 ? `<td rowspan="3" class="total" 
-
-style="background-color: ${bgColor}">0</td><td rowspan="3" class="rank" 
-
-style="background-color: ${bgColor}"></td>` : ``}
+                    ${i === 0 ? `<td rowspan="3" class="seq sticky-column" style="background-color: ${bgColor}">${playerCount}</td>` : ``}
+                    ${i === 0 ? `<td rowspan="3" class="sticky-name"><input type="text" placeholder="姓名"></td>` : ``}
+                    <td class="sticky-round" style="background-color: ${bgColor}">${["第一局", "第二局", "第三局"][i]}</td>
+                    ${Array(12).fill(`<td style="background-color: ${bgColor}"><input type="number" min="0" oninput="calculateScores()"></td>`).join('')}
+                    <td style="background-color: ${bgColor}"><input type="number" min="0" oninput="calculateScores()"></td>
+                    <td style="background-color: ${bgColor}"><input type="number" min="0" oninput="calculateScores()"></td>
+                    <td class="subtotal" style="background-color: ${bgColor}">0</td>
+                    ${i === 0 ? `<td rowspan="3" class="total" style="background-color: ${bgColor}">0</td><td rowspan="3" class="rank" style="background-color: ${bgColor}"></td>` : ``}
                 `;
 
                 scoreBody.appendChild(row);
@@ -182,12 +154,8 @@ style="background-color: ${bgColor}"></td>` : ``}
             players = players.filter(p => p.total > 0); // 總桿數為 0 者不排名
 
             players.sort((a, b) => {
-                if (a.total !== b.total) return a.total - b.total; // 1. 總桿數小
-
-者優先
-                if (a.oneshot !== b.oneshot) return b.oneshot - a.oneshot; // 2. 
-
-一桿數多者優先
+                if (a.total !== b.total) return a.total - b.total; // 1. 總桿數小者優先
+                if (a.oneshot !== b.oneshot) return b.oneshot - a.oneshot; // 2. 一桿數多者優先
                 return b.fourshot - a.fourshot; // 3. 四桿數多者優先
             });
 
@@ -195,9 +163,7 @@ style="background-color: ${bgColor}"></td>` : ``}
             let prev = null;
 
             players.forEach((p, index) => {
-                if (prev && (p.total !== prev.total || p.oneshot !== prev.oneshot 
-
-|| p.fourshot !== prev.fourshot)) {
+                if (prev && (p.total !== prev.total || p.oneshot !== prev.oneshot || p.fourshot !== prev.fourshot)) {
                     rank += skippedRanks;
                     skippedRanks = 1;
                 } else {
