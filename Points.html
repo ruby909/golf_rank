@@ -23,13 +23,15 @@
             position: sticky;
             left: 0;
             background: white;
-            z-index: 2;
+            z-index: 3;
         }
         .sticky-name {
             position: sticky;
             left: 50px;
             background: white;
             z-index: 2;
+    min-width: 120px; /* 設定最小寬度，避免過窄 */
+
         }
         .sticky-round {
             position: sticky;
@@ -42,7 +44,7 @@
         th.sticky-column, td.sticky-column,
         th.sticky-name, td.sticky-name,
         th.sticky-round, td.sticky-round {
-            box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+            box-shadow: 1px 0 3px rgba(0,0,0,0.1);
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
