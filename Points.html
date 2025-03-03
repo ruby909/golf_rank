@@ -9,14 +9,33 @@
         th, td { border: 1px solid black; padding: 5px; }
         input { width: 50px; text-align: center; }
         .seq { font-weight: bold; padding: 10px; } /* 序號樣式 */
-        
-        /* 固定表頭 */
-        .sticky-header th {
-            position: sticky;
-            top: 2;
-            background: white;
-            z-index: 4;
-        }
+
+       /* 設定表格區域，讓內容滾動但表頭固定 */
+
+       .table-container {
+
+         max-height: 800px; /* 設定最大高度，超過時允許滾動 */
+
+         overflow-y: auto; /* 允許垂直滾動 */
+
+         border: 1px solid #ccc; /* 增加邊框方便查看 */
+
+         position: relative;
+
+       } 
+       /* 固定表頭 */
+
+       .sticky-header {
+
+         position: sticky;
+
+         top: 0;
+
+         background: white;
+
+         z-index: 10;
+
+       }
 
         /* 固定「序號」、「參賽者」、「局數」 */
         .sticky-column {
@@ -27,7 +46,7 @@
         }
         .sticky-name {
             position: sticky;
-            left: 20px;
+            left: 30px;
             background: white;
             z-index: 2;
 
@@ -39,23 +58,19 @@
             z-index: 1;
         }
 
-        /* 避免凍結欄位被遮擋 */
+      /* 避免凍結欄位被遮擋 */
         th.sticky-column, td.sticky-column,
         th.sticky-name, td.sticky-name,
         th.sticky-round, td.sticky-round {
             box-shadow: 2px 0 5x rgba(0,0,0,0.1);
-        }
-        div {
+      /* 確保表格的橫向滾動 */
+      .table-wrapper {
 
         overflow-x: auto;
 
         max-width: 100%;
 
         white-space: nowrap;
-
-        height: 500px; /* 設定高度，讓表格內容可滾動 */
-
-        overflow-y: auto; /* 允許垂直滾動 */
 
         }
     </style>
@@ -64,10 +79,15 @@
 <body>
 
     <h2>地面高爾夫球賽紀錄卡</h2>
-    <div style="overflow-x: auto;">
+
+<div class="table-wrapper">
+
+    <div class="table-container">
+
         <table id="scoreTable">
-            <thead class="sticky-header">
-                <tr>
+            
+       <thead class="sticky-header">               
+<tr>
                     <th class="sticky-column" style="width: 50px;">序號</th>
                     <th class="sticky-name" style="width: 120px;">參賽者</th>
                     <th class="sticky-round" style="width: 100px;">局數</th>
@@ -83,7 +103,7 @@
             <tbody id="scoreBody"></tbody>
         </table>
     </div>
-
+</div>
     <button onclick="addPlayer()">新增選手</button>
     <button onclick="exportToExcel()">匯出 Excel</button>
 
